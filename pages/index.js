@@ -1,8 +1,11 @@
 import styled from "styled-components";
 import Link from "next/link";
 import { Container } from "../components/container";
+import { useSession, signIn, signOut } from "next-auth/react";
 
 const Students = ({ students, error }) => {
+  const { data: session } = useSession();
+
   if (error) {
     return (
       <Container>
@@ -12,16 +15,32 @@ const Students = ({ students, error }) => {
   }
   return (
     <Container>
+      {session ? (
+        <>
+          <span>Hallo </span> <span>{session.user.name}</span>
+          <a href="#" onClick={signOut}>
+            Abmelden
+          </a>
+        </>
+      ) : (
+        <a href="#" onClick={() => signIn("github")}>
+          Anmelden
+        </a>
+      )}
       <h1>Otter unter sich</h1>
       <StyledList>
         {students.map((student) => {
           return (
             <li key={student._id}>
-              <Link href={`/students/${student._id}`} passHref>
-                <a>
-                  {student.lastName}, {student.firstName}
-                </a>
-              </Link>
+              {session?.user.email === student.githubUserName ? (
+                <Link href={`/students/${student._id}`} passHref>
+                  <a>
+                    {student.lastName}, {student.firstName}
+                  </a>
+                </Link>
+              ) : (
+                `${student.lastName}, ${student.firstName}`
+              )}
             </li>
           );
         })}
